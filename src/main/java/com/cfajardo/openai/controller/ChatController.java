@@ -1,5 +1,6 @@
 package com.cfajardo.openai.controller;
 
+import com.cfajardo.openai.services.OpenAIService;
 import com.openai.client.OpenAIClient;
 import com.openai.client.okhttp.OpenAIOkHttpClient;
 import com.openai.models.ChatCompletion;
@@ -15,29 +16,17 @@ import java.util.concurrent.ExecutionException;
 @RequestMapping("/bot")
 public class ChatController {
 
-    @Value("${openai.api.key}")
-    private String openaiApiKey;
+    private final OpenAIService openAIService;
 
-    @Value("${openai.model}")
-    private String model;
-
-    @Value("${openai.api.url}")
-    private String url;
-
+    public ChatController(OpenAIService openAIService){
+        this.openAIService = openAIService;
+    }
 
     @PostMapping("/chat")
     @ResponseBody
     public String chat(@RequestBody String prompt) throws ExecutionException, InterruptedException {
 
-        OpenAIClient client = OpenAIOkHttpClient.builder().apiKey(openaiApiKey).build();
+        return openAIService.chat(prompt);
 
-        ChatCompletionCreateParams params = ChatCompletionCreateParams.builder()
-                .addUserMessage(prompt)
-                .model(ChatModel.GPT_4O_MINI)
-                .build();
-
-        CompletableFuture<ChatCompletion> chatCompletion = client.async().chat().completions().create(params);
-        ChatCompletion result = chatCompletion.join();
-        return result.choices().get(0).message().content().get();
     }
 }
